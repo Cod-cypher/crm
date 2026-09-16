@@ -17,7 +17,8 @@ module.exports = {
       exec_mode: "fork",
       instances: 1,
       autorestart: true,
-      max_memory_restart: "1500M",
+      // Settles around 0.9–1.1 GB after boot; leave headroom so PM2 doesn't restart it.
+      max_memory_restart: "2G",
       env: { NODE_ENV: "production" },
     },
     {
@@ -29,7 +30,8 @@ module.exports = {
       exec_mode: "fork",
       instances: 1,
       autorestart: true,
-      max_memory_restart: "1024M",
+      // Settles around 0.8 GB; a 1 GB limit made PM2 restart it right after boot.
+      max_memory_restart: "1500M",
       env: { NODE_ENV: "production" },
     },
   ],

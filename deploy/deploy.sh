@@ -28,5 +28,13 @@ cd /opt/twenty
 pm2 startOrReload deploy/ecosystem.config.cjs --update-env
 pm2 save
 
-sleep 10
-curl -fsS http://127.0.0.1:3020/healthz && echo && echo "== DEPLOYED $(git rev-parse --short HEAD)"
+# Boot takes ~30–60s (metadata cache warm-up), so poll instead of a fixed sleep.
+for i in $(seq 1 36); do
+  if curl -fsS http://127.0.0.1:3020/healthz >/dev/null 2>&1; then
+    echo "== DEPLOYED $(git rev-parse --short HEAD)"
+    exit 0
+  fi
+  sleep 5
+done
+echo "== HEALTH CHECK FAILED after 180s — check: pm2 logs twenty-server --lines 100"
+exit 1
