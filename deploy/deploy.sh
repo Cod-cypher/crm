@@ -7,13 +7,18 @@ export PATH=/opt/node-v24/bin:$PATH
 export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 cd /opt/twenty
 
-echo "== pulling origin/$BRANCH"
-git fetch origin "$BRANCH"
-# The server never holds real edits: the build's lingui:extract step rewrites
-# tracked .po files, so throw those away and match the pushed branch exactly.
-# (.env and build output are gitignored and survive this.)
-git checkout -f -B "$BRANCH" "origin/$BRANCH"
-git reset --hard "origin/$BRANCH"
+if [ -z "${DEPLOY_PULLED:-}" ]; then
+  echo "== pulling origin/$BRANCH"
+  git fetch origin "$BRANCH"
+  # The server never holds real edits: the build's lingui:extract step rewrites
+  # tracked .po files, so throw those away and match the pushed branch exactly.
+  # (.env and build output are gitignored and survive this.)
+  git checkout -f -B "$BRANCH" "origin/$BRANCH"
+  git reset --hard "origin/$BRANCH"
+  # The pull may have replaced this very script, and bash keeps running the old
+  # copy it already opened. Re-run the freshly pulled version for the rest.
+  DEPLOY_PULLED=1 exec bash /opt/twenty/deploy/deploy.sh "$BRANCH"
+fi
 git log --oneline -1
 
 nice -n 10 ./deploy/build.sh
