@@ -9,7 +9,11 @@ cd /opt/twenty
 
 echo "== pulling origin/$BRANCH"
 git fetch origin "$BRANCH"
-git checkout -B "$BRANCH" "origin/$BRANCH"
+# The server never holds real edits: the build's lingui:extract step rewrites
+# tracked .po files, so throw those away and match the pushed branch exactly.
+# (.env and build output are gitignored and survive this.)
+git checkout -f -B "$BRANCH" "origin/$BRANCH"
+git reset --hard "origin/$BRANCH"
 git log --oneline -1
 
 nice -n 10 ./deploy/build.sh
